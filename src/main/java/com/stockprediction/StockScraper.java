@@ -4,11 +4,14 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class StockScraper {
-    public void fetchStockData(String symbol, String apiKey) {
+    public List<String[]> fetchStockData(String symbol, String apiKey) {
+        List<String[]> stockData = new ArrayList<>();
         String function = "TIME_SERIES_DAILY";
         try {
             // Construct the API URL
@@ -35,23 +38,24 @@ public class StockScraper {
             JsonObject jsonResponse = JsonParser.parseString(response.toString()).getAsJsonObject();
             JsonObject timeSeries = jsonResponse.getAsJsonObject("Time Series (Daily)");
 
-            // Print the stock prices
-            System.out.println("Date\t\tOpen\tHigh\tLow\tClose\tVolume");
+            // Extract and store stock prices
             timeSeries.entrySet().forEach(entry -> {
                 String date = entry.getKey();
                 JsonObject dailyData = entry.getValue().getAsJsonObject();
-                System.out.printf("%s\t%s\t%s\t%s\t%s\t%s%n",
-                        date,
-                        dailyData.get("1. open").getAsString(),
-                        dailyData.get("2. high").getAsString(),
-                        dailyData.get("3. low").getAsString(),
-                        dailyData.get("4. close").getAsString(),
-                        dailyData.get("5. volume").getAsString()
-                );
+                String[] row = {
+                    date,
+                    dailyData.get("1. open").getAsString(),
+                    dailyData.get("2. high").getAsString(),
+                    dailyData.get("3. low").getAsString(),
+                    dailyData.get("4. close").getAsString(),
+                    dailyData.get("5. volume").getAsString()
+                };
+                stockData.add(row);
             });
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return stockData;
     }
 }
